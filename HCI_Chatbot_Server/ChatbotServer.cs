@@ -58,6 +58,10 @@ namespace HCI_Chatbot_Server
                 {
                     userExit = true;
                 }
+                else if (message.StartsWith("submit ticket") || message.StartsWith("Submit Ticket"))
+                {
+                    GenerateTicketForm(userName, userPhone,ticketNo,userEmail);
+                }
             }
         }
         public void GenerateTicketForm(string userName, string userPhone, string ticketNo, string userEmail)
@@ -86,16 +90,23 @@ namespace HCI_Chatbot_Server
                     "<h2>Ticket Submission Review</h2>\n" +
                     "<p>Please review the information below before submitting your ticket. " +
                     "A help desk representative will be in touch with you within 24-48 hours</p>\n" +
-                    "<form action=\"\">\n" +
-                    "<label for=\"uname\">Name:</label><br>\n" +
-                    "<input type=\"text\" id=\"uname\" name=\"uname\" value=\"" + userName + "\"><br>\n" +
-                    "<label for=\"phoneno\">Phone:</label><br>\n" +
-                    "<input type=\"text\" id=\"phoneno\" name=\"phoneno\" value=\"" + userPhone + "\"><br>\n" +
-                    "<label for=\"email\">Email:</label><br>\n" +
-                    "<input type=\"text\" id=\"email\" name=\"email\" value=\"" + userEmail + "\"><br>\n" +
-                    "<label for=\"ticketno\">Ticket Number: "+ticketNo+"</label><br><br>\n" +
-                    "<input type=\"submit\" value=\"Submit\">\n" +
-                    "</form>\n" +
+                    "<p id=\"uname\">Name:</p>\n" +
+                    "<input type=\"text\" id=\"uname\" name=\"uname\" value=\"" + userName + "\">\n" +
+                    "<p id=\"phoneno\">Phone:</p>\n" +
+                    "<input type=\"text\" id=\"phoneno\" name=\"phoneno\" value=\"" + userPhone + "\">\n" +
+                    "<p id=\"email\">Email:</p>\n" +
+                    "<input type=\"text\" id=\"email\" name=\"email\" value=\"" + userEmail + "\">\n" +
+                    "<p id=\"ticketno\">Ticket Number: "+ticketNo+"</p>\n" +
+                    "<button type=\"button\" id=\"submitTicket\" onclick=\"myFunction()\">Submit</button>\n" +
+                    "<p id=\"submitStatus\"></p>\n" +
+                    "<script>\n" +
+                    "function myFunction() {\n  " +
+                    "let x = document.getElementById(\"submitTicket\").value;\n  " +
+                    "let text;\n  " +
+                    "text = \"Ticket Submitted\";\n" +
+                    "document.getElementById(\"submitStatus\").innerHTML = text;\n" +
+                    "}\n" +
+                    "</script>\n" +
                     "</body>\n" +
                     "</html>");
             }
