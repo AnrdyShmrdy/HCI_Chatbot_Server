@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace HCI_Chatbot_Server
 {
@@ -58,7 +59,46 @@ namespace HCI_Chatbot_Server
                 }
             }
         }
+        public void GenerateTicketForm(string userName, string userPhone, string ticketNo, string userEmail)
+        {
+            string filePath = @"c:\temp\MyForm.html";
 
+            // Delete the file if it exists.
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            static void AddText(FileStream fs, string value)
+            {
+                byte[] info = new UTF8Encoding(true).GetBytes(value);
+                fs.Write(info, 0, info.Length);
+            }
+
+            //Create the file.
+            using (FileStream fs = File.Create(filePath))
+            {
+                AddText(fs,
+                    "<!DOCTYPE html>\n" +
+                    "<html>\n" +
+                    "<body>\n" +
+                    "<h2>Ticket Submission Review</h2>\n" +
+                    "<p>Please review the information below before submitting your ticket. " +
+                    "A help desk representative will be in touch with you within 24-48 hours</p>\n" +
+                    "<form action=\"\">\n" +
+                    "<label for=\"uname\">Name:</label><br>\n" +
+                    "<input type=\"text\" id=\"uname\" name=\"uname\" value=\"" + userName + "\"><br>\n" +
+                    "<label for=\"phoneno\">Phone:</label><br>\n" +
+                    "<input type=\"text\" id=\"phoneno\" name=\"phoneno\" value=\"" + userPhone + "\"><br>\n" +
+                    "<label for=\"email\">Email:</label><br>\n" +
+                    "<input type=\"text\" id=\"email\" name=\"email\" value=\"" + userEmail + "\"><br>\n" +
+                    "<label for=\"ticketno\">Ticket Number: "+ticketNo+"</label><br><br>\n" +
+                    "<input type=\"submit\" value=\"Submit\">\n" +
+                    "</form>\n" +
+                    "</body>\n" +
+                    "</html>");
+            }
+        }
         public void StartServer()
         {
 
@@ -96,6 +136,7 @@ namespace HCI_Chatbot_Server
                 Console.WriteLine("UserEmail: " + userEmail);
                 Console.WriteLine("UserName: " + userName);
                 Console.WriteLine("Ticket: " + ticketNo);
+                GenerateTicketForm(userName, userPhone, ticketNo, userEmail);
             }
             catch (Exception e)
             {
