@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using System.Diagnostics;
 
 namespace HCI_Chatbot_Server
 {
@@ -98,6 +99,12 @@ namespace HCI_Chatbot_Server
                     "</body>\n" +
                     "</html>");
             }
+            var p = new Process();
+            p.StartInfo = new ProcessStartInfo(filePath)
+            {
+                UseShellExecute = true
+            };
+            p.Start();
         }
         public void StartServer()
         {
