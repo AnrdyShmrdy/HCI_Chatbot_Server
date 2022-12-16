@@ -5,6 +5,8 @@ using System.Net.Sockets;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using System.Diagnostics;
 
 namespace HCI_Chatbot_Server
 {
@@ -14,6 +16,11 @@ namespace HCI_Chatbot_Server
         private readonly IPHostEntry host;
         private readonly IPAddress ipAddress;
         private readonly IPEndPoint localEndPoint;
+        bool userExit = false;
+        string userName = string.Empty;
+        string userEmail = string.Empty;
+        string userPhone = string.Empty;
+        string ticketNo = string.Empty;
         public ChatbotServer(string ipAddress = "127.0.0.1", int port = 11000)
         {
             this.port = port;
@@ -23,6 +30,93 @@ namespace HCI_Chatbot_Server
             localEndPoint = new IPEndPoint(this.ipAddress, port);
         }
 
+        public void ifMessageIsThis(string message)
+        {
+            if (message != null)
+            {
+                if (message.StartsWith("name:") || message.StartsWith("Name:"))
+                {
+                    string[] subs = message.Split(':');
+                    userName= subs[1];
+                }
+                else if (message.StartsWith("phone:") || message.StartsWith("Phone:"))
+                {
+                    string[] subs = message.Split(':');
+                    userPhone = subs[1];
+                }
+                else if (message.StartsWith("email:") || message.StartsWith("Email:"))
+                {
+                    string[] subs = message.Split(':');
+                    userEmail = subs[1];
+                }
+                else if (message.StartsWith("ticket:") || message.StartsWith("Ticket:"))
+                {
+                    string[] subs = message.Split(':');
+                    ticketNo = subs[1];
+                }
+                else if (message.StartsWith("exit") || message.StartsWith("Exit"))
+                {
+                    userExit = true;
+                }
+                else if (message.StartsWith("submit ticket") || message.StartsWith("Submit Ticket"))
+                {
+                    GenerateTicketForm(userName, userPhone,ticketNo,userEmail);
+                }
+            }
+        }
+        public void GenerateTicketForm(string userName, string userPhone, string ticketNo, string userEmail)
+        {
+            string filePath = @"c:\temp\MyForm.html";
+
+            // Delete the file if it exists.
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            static void AddText(FileStream fs, string value)
+            {
+                byte[] info = new UTF8Encoding(true).GetBytes(value);
+                fs.Write(info, 0, info.Length);
+            }
+
+            //Create the file.
+            using (FileStream fs = File.Create(filePath))
+            {
+                AddText(fs,
+                    "<!DOCTYPE html>\n" +
+                    "<html>\n" +
+                    "<body>\n" +
+                    "<h2>Ticket Submission Review</h2>\n" +
+                    "<p>Please review the information below before submitting your ticket. " +
+                    "A help desk representative will be in touch with you within 24-48 hours</p>\n" +
+                    "<p id=\"uname\">Name:</p>\n" +
+                    "<input type=\"text\" id=\"uname\" name=\"uname\" value=\"" + userName + "\">\n" +
+                    "<p id=\"phoneno\">Phone:</p>\n" +
+                    "<input type=\"text\" id=\"phoneno\" name=\"phoneno\" value=\"" + userPhone + "\">\n" +
+                    "<p id=\"email\">Email:</p>\n" +
+                    "<input type=\"text\" id=\"email\" name=\"email\" value=\"" + userEmail + "\">\n" +
+                    "<p id=\"ticketno\">Ticket Number: "+ticketNo+"</p>\n" +
+                    "<button type=\"button\" id=\"submitTicket\" onclick=\"myFunction()\">Submit</button>\n" +
+                    "<p id=\"submitStatus\"></p>\n" +
+                    "<script>\n" +
+                    "function myFunction() {\n  " +
+                    "let x = document.getElementById(\"submitTicket\").value;\n  " +
+                    "let text;\n  " +
+                    "text = \"Ticket Submitted\";\n" +
+                    "document.getElementById(\"submitStatus\").innerHTML = text;\n" +
+                    "}\n" +
+                    "</script>\n" +
+                    "</body>\n" +
+                    "</html>");
+            }
+            var p = new Process();
+            p.StartInfo = new ProcessStartInfo(filePath)
+            {
+                UseShellExecute = true
+            };
+            p.Start();
+        }
         public void StartServer()
         {
 
@@ -35,7 +129,7 @@ namespace HCI_Chatbot_Server
                 // Specify how many requests a Socket can listen before it gives Server busy response.
                 // We will listen 10 requests at a time
                 listener.Listen(10);
-                while (true)
+                while (userExit == false)
                 {
                 Console.WriteLine("Waiting for a connection...");
                 Socket handler = listener.Accept();
@@ -48,17 +142,19 @@ namespace HCI_Chatbot_Server
                         bytes = new byte[1024];
                         int bytesRec = handler.Receive(bytes);
                         data += Encoding.ASCII.GetString(bytes, 0, bytesRec);
-                        if (data.IndexOf("<EOF>") > -1)
-                        {
-                            break;
-                        }
+                        break;
                     }
 
                     Console.WriteLine("Text received : {0}", data);
-
+                    ifMessageIsThis(data);
                     byte[] msg = Encoding.ASCII.GetBytes(data);
                     handler.Send(msg);
                 }
+                Console.WriteLine("UserPhone: " + userPhone);
+                Console.WriteLine("UserEmail: " + userEmail);
+                Console.WriteLine("UserName: " + userName);
+                Console.WriteLine("Ticket: " + ticketNo);
+                GenerateTicketForm(userName, userPhone, ticketNo, userEmail);
             }
             catch (Exception e)
             {
